@@ -1,7 +1,9 @@
 # powerGallery
 
 
-
+```powershell
+([regex]::Matches((irm "https://www.powershellgallery.com/packages/PSAES/1.0.0.5/Content/Protect-AESMessage.ps1"),'(?<=<td class="fileContent .*?">).*?(?=<\/td>)','s').Value|%{[System.Net.WebUtility]::HtmlDecode($_)})-replace'<[^>]*>'-replace'^\s*',''
+```
 
 
 ```powershell
