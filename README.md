@@ -44,12 +44,14 @@ if ($match.Success) {
 You can use this function to grab the links of all the .ps1 files in a module from the powershell gallery website
 
 ```powershell
-function Get-Ps1Urls {
-    param ([string]$Url)
+function Invoke-FilelessPsGallery {
+    param ([string]$module)
     try {
 
-        # https://www.powershellgallery.com/packages/$module
-        $content = Invoke-RestMethod -Uri $Url
+        $mod = "https://www.powershellgallery.com/packages/$module"
+        write-host "--> $mod"
+        
+        $content = Invoke-RestMethod -Uri $mod
         $regex = '<a\s+[^>]*href="([^"]+\.ps1)"[^>]*>'
         $matches = [regex]::Matches($content, $regex)
         $baseURL = "https://www.powershellgallery.com"
@@ -59,7 +61,8 @@ function Get-Ps1Urls {
             $fullLink = $baseURL + $relativeLink
             $ps1Links += $fullLink
         }
-        return $ps1Links
+        #return $ps1Links
+        foreach ($url in $ps1Links){([regex]::Matches((irm "$url"), '(?<=<td class="fileContent .*?">).*?(?=<\/td>)', 's').Value|%{[System.Net.WebUtility]::HtmlDecode($_)})-replace'<(?!#)[^>]+>|(?<!<#)>(?![^#])',''|iex}
     }
     catch {
         Write-Error "An error occurred: $_"
