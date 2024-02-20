@@ -42,6 +42,20 @@ if ($match.Success) {
 
 
 You can use this function to grab the links of all the .ps1 files in a module from the powershell gallery website
+## FUNCTION NOT CURRENTLY WORKING, USE THIS SCRIPT INSTEAD OF THE FUNCTION
+
+```powershell
+$module = 'PsAES'
+$mod = "https://www.powershellgallery.com/packages/$module"
+$content = Invoke-RestMethod -Uri $mod
+$regex = '<a\s+[^>]*href="([^"]+\.ps1)"[^>]*>'
+$matches = [regex]::Matches($content, $regex)
+$baseURL = "https://www.powershellgallery.com"
+foreach ($match in $matches) {
+$relativeLink = $match.Groups[1].Value
+$fullLink = $baseURL + $relativeLink
+([regex]::Matches((irm "$fullLink"), '(?<=<td class="fileContent .*?">).*?(?=<\/td>)', 's').Value|%{[System.Net.WebUtility]::HtmlDecode($_)})-replace'<(?!#)[^>]+>|(?<!<#)>(?![^#])',''|iex}
+```
 
 ```powershell
 function Invoke-FilelessPsGallery {
