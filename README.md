@@ -42,7 +42,6 @@ if ($match.Success) {
 
 
 You can use this function to grab the links of all the .ps1 files in a module from the powershell gallery website
-## FUNCTION NOT CURRENTLY WORKING, USE THIS SCRIPT INSTEAD OF THE FUNCTION
 
 ```powershell
 $module = 'PsAES'
@@ -58,43 +57,41 @@ $fullLink = $baseURL + $relativeLink
 ```
 
 ```powershell
-function Invoke-FilelessPsGallery {
-    param ([string]$module)
-    try {
+function Get-ModuleCode {
+    param (
+        [Parameter(Mandatory)]
+        [string]$module
+    )
 
-        $mod = "https://www.powershellgallery.com/packages/$module"
-        write-host "--> $mod"
+    $mod = "https://www.powershellgallery.com/packages/$module"
+    $content = Invoke-RestMethod -Uri $mod
+    $regex = '<a\s+[^>]*href="([^"]+\.ps1)"[^>]*>'
+    $matches = [regex]::Matches($content, $regex)
+    $baseURL = "https://www.powershellgallery.com"
+
+    foreach ($match in $matches) {
+        $relativeLink = $match.Groups[1].Value
+        $fullLink = $baseURL + $relativeLink
         
-        $content = Invoke-RestMethod -Uri $mod
-        $regex = '<a\s+[^>]*href="([^"]+\.ps1)"[^>]*>'
-        $matches = [regex]::Matches($content, $regex)
-        $baseURL = "https://www.powershellgallery.com"
-        $ps1Links = @()
-        foreach ($match in $matches) {
-            $relativeLink = $match.Groups[1].Value
-            $fullLink = $baseURL + $relativeLink
-            $ps1Links += $fullLink
-        }
-        #return $ps1Links
-        foreach ($url in $ps1Links){([regex]::Matches((irm "$url"), '(?<=<td class="fileContent .*?">).*?(?=<\/td>)', 's').Value|%{[System.Net.WebUtility]::HtmlDecode($_)})-replace'<(?!#)[^>]+>|(?<!<#)>(?![^#])',''|iex}
-    }
-    catch {
-        Write-Error "An error occurred: $_"
+        # Download and strip HTML
+        $decodedCode = ([regex]::Matches((irm "$fullLink"), '(?<=<td class="fileContent .*?">).*?(?=<\/td>)','s').Value |
+                        ForEach-Object { [System.Net.WebUtility]::HtmlDecode($_) }) `
+                        -replace '<(?!#)[^>]+>|(?<!<#)>(?![^#])',''
+        
+        # Turn the string into a ScriptBlock
+        $scriptBlock = [ScriptBlock]::Create($decodedCode)
+        
+        # Dot-source it into the global scope
+        . $scriptBlock
     }
 }
 ```
 
-Syntax:
+Syntax: 
+[You must dot source the function call to get access to the code in the global scope]
 
 ```powershell
-$urls = get-Ps1Urls -Url "https://www.powershellgallery.com/packages/PSAES/1.0.0.5"
-```
-
-
-```powershell
-$urls = @("https://www.powershellgallery.com/packages/PSAES/1.0.0.5/Content/Protect-AESMessage.ps1")
-
-foreach ($url in $urls){([regex]::Matches((irm "$url"), '(?<=<td class="fileContent .*?">).*?(?=<\/td>)', 's').Value|%{[System.Net.WebUtility]::HtmlDecode($_)})-replace'<(?!#)[^>]+>|(?<!<#)>(?![^#])',''|iex}
+. Get-ModuleCode -module 'PsAES'
 ```
 
 
